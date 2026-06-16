@@ -542,7 +542,11 @@ function genChofer(){
     y+=10;
     sf(doc,cNG);doc.rect(ML,y,PW-ML-MR,0.6,'F');y+=5;
     // Table
-    var dayRows=byDate[date].slice().sort(function(a,b){return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);});
+    var dayRows=byDate[date].slice().sort(function(a,b){
+      var fa=String(a.ID_FILE||''), fb=String(b.ID_FILE||'');
+      if(fa!==fb) return fa<fb?-1:1;
+      return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
+    });
     var tableData=dayRows.map(function(r){
       return[
         fmtH(r.hora_PICK_UP)||'—',
@@ -565,15 +569,15 @@ function genChofer(){
       head:[['Hora','Servicio','Cat','Vuelo','Nombre Pax','Cant','Origen','Destino','Guia','Chofer','Observaciones','Reserva']],
       body:tableData,
       styles:{fontSize:7.5,cellPadding:3,valign:'top',textColor:[40,40,40],overflow:'linebreak'},
-      headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4},
+      headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4,minCellHeight:0,halign:'left',valign:'middle',overflow:'hidden'},
       alternateRowStyles:{fillColor:[249,249,249]},
       columnStyles:{
-        0:{cellWidth:14,fontStyle:'bold',textColor:cNG,fontSize:9},
-        1:{cellWidth:46},
-        2:{cellWidth:11},
+        0:{cellWidth:13,fontStyle:'bold',textColor:cNG,fontSize:9},
+        1:{cellWidth:42},
+        2:{cellWidth:14,halign:'left'},
         3:{cellWidth:16,textColor:cTRF},
         4:{cellWidth:38},
-        5:{cellWidth:9,halign:'center'},
+        5:{cellWidth:12,halign:'center'},
         6:{cellWidth:24},
         7:{cellWidth:24},
         8:{cellWidth:20},
@@ -730,7 +734,11 @@ function buildPaxPDF(fileRows){
     doc.text(dayLabel(date).toUpperCase(),ML+8,y+7.5);
     y+=16;
 
-    var dayRows=byDate[date].slice().sort(function(a,b){return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);});
+    var dayRows=byDate[date].slice().sort(function(a,b){
+      var fa=String(a.ID_FILE||''), fb=String(b.ID_FILE||'');
+      if(fa!==fb) return fa<fb?-1:1;
+      return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
+    });
     dayRows.forEach(function(r,ri){
       var h=fmtH(r.hora_PICK_UP);
       var desc=cleanDesc(r.DESCRIPCION);
