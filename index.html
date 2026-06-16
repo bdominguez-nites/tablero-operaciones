@@ -543,8 +543,14 @@ function genChofer(){
     sf(doc,cNG);doc.rect(ML,y,PW-ML-MR,0.6,'F');y+=5;
     // Table
     var dayRows=byDate[date].slice().sort(function(a,b){
+      // 1. By reserva number (numeric part of ID_FILE before '/')
+      var ra=Number(String(a.ID_FILE||'').split('/')[0])||0;
+      var rb=Number(String(b.ID_FILE||'').split('/')[0])||0;
+      if(ra!==rb) return ra-rb;
+      // 2. By file (full ID_FILE string)
       var fa=String(a.ID_FILE||''), fb=String(b.ID_FILE||'');
       if(fa!==fb) return fa<fb?-1:1;
+      // 3. By hora
       return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
     });
     var tableData=dayRows.map(function(r){
@@ -566,7 +572,7 @@ function genChofer(){
     doc.autoTable({
       startY:y,
       margin:{left:ML,right:MR},
-      head:[['Hora','Servicio','Cat','Vuelo','Nombre Pax','Cant','Origen','Destino','Guia','Chofer','Observaciones','Reserva']],
+      head:[['Hora','Servicio','Cat','Vuelo','Nombre Pax','Pax','Origen','Destino','Guia','Chofer','Observaciones','File']],
       body:tableData,
       styles:{fontSize:7.5,cellPadding:3,valign:'top',textColor:[40,40,40],overflow:'linebreak'},
       headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4,minCellHeight:0,halign:'left',valign:'middle',overflow:'hidden'},
@@ -586,6 +592,12 @@ function genChofer(){
         11:{cellWidth:14,textColor:[120,120,120]}
       },
       didParseCell:function(data){
+        if(data.section==='head'){
+          data.cell.styles.halign='left';
+          data.cell.styles.valign='middle';
+          data.cell.styles.overflow='hidden';
+          data.cell.styles.cellPadding=3;
+        }
         if(data.column.index===0&&data.section==='body'){
           data.cell.styles.fontStyle='bold';
           data.cell.styles.textColor=cNG;
@@ -735,8 +747,14 @@ function buildPaxPDF(fileRows){
     y+=16;
 
     var dayRows=byDate[date].slice().sort(function(a,b){
+      // 1. By reserva number (numeric part of ID_FILE before '/')
+      var ra=Number(String(a.ID_FILE||'').split('/')[0])||0;
+      var rb=Number(String(b.ID_FILE||'').split('/')[0])||0;
+      if(ra!==rb) return ra-rb;
+      // 2. By file (full ID_FILE string)
       var fa=String(a.ID_FILE||''), fb=String(b.ID_FILE||'');
       if(fa!==fb) return fa<fb?-1:1;
+      // 3. By hora
       return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
     });
     dayRows.forEach(function(r,ri){
