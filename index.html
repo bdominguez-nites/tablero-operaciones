@@ -1162,23 +1162,33 @@ function buildPaxPDF(fileRows){
   // Intro
   doc.setFont('helvetica','normal');doc.setFontSize(9);st(doc,[70,70,70]);
   var p1l=doc.splitTextToSize('Para cualquier consulta relacionada con los servicios contratados, nuestro equipo se encuentra a su disposicion.',CW);
-  doc.text(p1l,ML,y);y+=p1l.length*4.5+6;
+  doc.text(p1l,ML,y);y+=p1l.length*4.5+7;
 
-  // Before/during
-  doc.setFont('helvetica','bold');doc.setFontSize(9);st(doc,cND);
-  doc.text('Antes y durante su viaje',ML,y);y+=5;
+  // During trip
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);st(doc,cND);
+  doc.text('Durante su viaje',ML,y);y+=5.5;
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[90,90,90]);
-  doc.text('Atencion de 07:00 a 20:00 hs (UTC-3, horario de Argentina):',ML,y);y+=5;
+  doc.text('Atencion de 07:00 a 20:00 hs (UTC-3, horario de Argentina) via Whatsapp:',ML,y);y+=5;
   doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cNG);
-  doc.text('+54 9 261 303-3646',ML,y);y+=8;
+  doc.text('+54 9 261 303-3646',ML,y);y+=9;
 
-  // Emergency
-  doc.setFont('helvetica','bold');doc.setFontSize(9);st(doc,cND);
-  doc.text('Asistencia de emergencia 24 horas',ML,y);y+=5;
+  // Emergency — "EMERGENCIA" in bold uppercase inline
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);st(doc,cND);
+  doc.text('Emergencias',ML,y);y+=5.5;
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[90,90,90]);
-  doc.text('En caso de emergencia durante su viaje puede contactarnos por llamada:',ML,y);y+=5;
+  // Render inline: "Ante cualquier " + "EMERGENCIA" bold + " que requiera..."
+  var pre='Ante cualquier ';
+  var bold='EMERGENCIA';
+  var post=' que requiera asistencia inmediata puede contactarnos por llamada:';
+  var preW=doc.getTextWidth(pre);
+  var boldW=doc.getTextWidth(bold);
+  doc.text(pre,ML,y);
+  doc.setFont('helvetica','bold');st(doc,cND);
+  doc.text(bold,ML+preW,y);
+  doc.setFont('helvetica','normal');st(doc,[90,90,90]);
+  doc.text(post,ML+preW+boldW,y);y+=5;
   doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cNG);
-  doc.text('+54 9 261 303-3646',ML,y);y+=8;
+  doc.text('+54 9 261 303-3646',ML,y);y+=9;
 
   // Recommendation
   doc.setFont('helvetica','italic');doc.setFontSize(8);st(doc,[140,140,140]);
