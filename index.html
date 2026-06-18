@@ -518,7 +518,7 @@ function toggleRowTemplate(i, key) {
   if(panel) panel.innerHTML = buildTplPanel(i);
 }
 
-function buildTplPanel(i) {
+function buildTplPanel(i, showTemplates) {
   var active = getRowTemplates(i);
   var allKeys = Object.keys(TEMPLATES);
   var ddItems = allKeys.map(function(k) {
@@ -550,13 +550,16 @@ function buildTplPanel(i) {
       '</div>'+
     '</div>';
 
-  return '<div class="tpl-hdr">'+
-    '<span class="tpl-lbl">Plantilla de descripción</span>'+
-    '<div class="tpl-add-wrap">'+
-      '<button class="tpl-add-btn" onclick="toggleTplDd('+i+',event)">+ Cambiar / agregar</button>'+
-      '<div class="tpl-dropdown" id="tpdd-'+i+'">'+ddItems+'</div>'+
-    '</div>'+
-  '</div>'+chips+noteSection;
+  var tplSection = showTemplates ?
+    '<div class="tpl-hdr">'+
+      '<span class="tpl-lbl">Plantilla de descripción</span>'+
+      '<div class="tpl-add-wrap">'+
+        '<button class="tpl-add-btn" onclick="toggleTplDd('+i+',event)">+ Cambiar / agregar</button>'+
+        '<div class="tpl-dropdown" id="tpdd-'+i+'">'+ddItems+'</div>'+
+      '</div>'+
+    '</div>'+chips
+    : '';
+  return tplSection+noteSection;
 }
 
 function toggleNote(i) {
@@ -648,7 +651,7 @@ function renderP(){
           '</div>'+
         '</div>'+
       '</div>'+
-      (isExcRow?'<div class="tpl-panel" id="tpl-'+i+'">'+ buildTplPanel(i) +'</div>':'');
+      '<div class="tpl-panel" id="tpl-'+i+'">'+ buildTplPanel(i,isExcRow) +'</div>';
     });
     html+='</div>';
   });
