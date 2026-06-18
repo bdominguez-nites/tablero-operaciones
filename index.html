@@ -127,6 +127,35 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 .dl-btn-gray{background:var(--s2);color:var(--txt);border:1.5px solid var(--bd)}
 .empty-state{text-align:center;padding:32px;color:var(--txt3);font-size:13px}
 
+/* ── TEMPLATE PANELS ── */
+.tpl-panel{background:#f6fdf0;border-top:1px dashed #c5eba0;padding:10px 16px 12px 42px}
+.tpl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tpl-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ngd)}
+.tpl-add-wrap{position:relative}
+.tpl-add-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--bd);background:#fff;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
+.tpl-add-btn:hover{border-color:var(--ng);color:var(--ng)}
+.tpl-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:#fff;border:1px solid var(--bd);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:220px}
+.tpl-dropdown.open{display:block}
+.tpl-dd-item{padding:9px 14px;font-size:12px;color:var(--txt);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);transition:background .1s}
+.tpl-dd-item:last-child{border-bottom:none}
+.tpl-dd-item:hover{background:#f6fdf0}
+.tpl-dd-item.active{color:var(--ngd);font-weight:600}
+.tpl-dd-check{color:var(--ng);font-size:13px;width:14px}
+.tpl-chip{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #c5eba0;border-radius:6px;padding:6px 10px;margin-bottom:5px}
+.tpl-chip:last-child{margin-bottom:0}
+.tpl-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--ng);flex-shrink:0}
+.tpl-chip-name{font-size:12px;font-weight:600;color:var(--nd);flex:1}
+.tpl-chip-rm{font-size:10px;color:var(--txt3);cursor:pointer;padding:2px 6px;border-radius:4px;border:1px solid var(--bd);background:var(--s2);line-height:1.4}
+.tpl-chip-rm:hover{border-color:#f99;color:#c44;background:#fff5f5}
+.tpl-none{font-size:11px;color:#bbb;font-style:italic}
+.tpl-note-wrap{margin-top:8px;border-top:1px dashed #c5eba0;padding-top:8px}
+.tpl-note-toggle{font-size:11px;color:var(--ngd);cursor:pointer;display:flex;align-items:center;gap:5px;background:none;border:none;padding:0;font-family:inherit}
+.tpl-note-toggle:hover{color:var(--ng)}
+.tpl-note-toggle.active{font-weight:600}
+.tpl-textarea{width:100%;margin-top:6px;padding:8px 10px;font-size:12px;font-family:inherit;border:1px solid #c5eba0;border-radius:6px;background:#fff;color:var(--txt);resize:vertical;min-height:64px;line-height:1.5;outline:none}
+.tpl-textarea:focus{border-color:var(--ng)}
+.tpl-textarea::placeholder{color:#bbb}
+
 /* ── PROGRESS ── */
 .progress{display:none;margin-top:20px;background:var(--surface);border-radius:var(--r);padding:20px;border:1px solid var(--bd)}
 .progress.on{display:block}
@@ -418,6 +447,145 @@ function updC(){
 }
 
 // ── RENDER PAX ──
+// ── TEMPLATE DATA ──
+var TEMPLATES = {
+  'alta_montana': {
+    name: 'Alta Montaña',
+    keywords: ['ALTA MONTA','ALTA MONTAÑA','POTRERILLOS','USPALLATA'],
+    desc: 'En este tour recorreremos la Ruta Internacional Nº 7 camino al vecino país de Chile, atravesando los tres cordones montañosos que conforman la Cordillera de Los Andes. Paisajes de coloridas montañas y lugares cargados de historia nos esperan. Visitamos Valle de Potrerillos, Valle de Uspallata, Puente histórico de Picheuta, Polvaredas, Punta de Vacas, Penitentes, Puente del Inca, Mirador del Cerro Aconcagua, Villa fronteriza de Las Cuevas. Si el camino y el estado del tiempo lo permite, realizamos el ascenso al Monumento Cristo Redentor, símbolo de paz ubicado a 4200 msnm.',
+    rec: 'Recomendaciones: llevar vestimenta y calzado cómodo adecuado para la época del año, caramelos, agua mineral, protección solar y sombrero. Llevar documentación personal (DNI, Pasaporte, etc.). Durante el tour se realiza una parada para almuerzo. Recomendamos llevar dinero en efectivo ya que en la zona no hay buena conexión para pagos online.'
+  },
+  'bodegas_aceitera': {
+    name: 'Bodegas y Aceitera',
+    keywords: ['BODEGAS Y ACEITERA','BODEGAS Y ACEITE','BODEGA Y ACEITERA'],
+    desc: 'Visitamos 2 bodegas ubicadas en la zona de Maipú. En cada bodega sus guías nos recibirán para realizar una visita por las instalaciones, contándonos los procesos de elaboración y características de sus vinos, culminando el recorrido con la degustación. Posteriormente visitaremos una fábrica de aceite de oliva, donde conoceremos otro producto destacado de Mendoza.',
+    rec: 'Recomendaciones: llevar vestimenta y calzado cómodo adecuado para la época del año. En cada establecimiento tendrán la posibilidad de comprar vinos y aceites de oliva — consultar previamente con su línea aérea la política respecto a botellas permitidas por pasajero. Se recomienda llevar dinero en efectivo ya que no todas las bodegas aceptan tarjetas.'
+  },
+  'villavicencio': {
+    name: 'Villavicencio',
+    keywords: ['VILLAVICENCIO'],
+    desc: 'Partimos desde la Ciudad de Mendoza rumbo al Monumento Canota, la Reserva Natural Villavicencio y el histórico Gran Hotel Villavicencio, rodeado de hermosos jardines y paseos. Continuamos por el famoso "camino de los caracoles", conocido por sus 365 curvas. Llegaremos al mirador panorámico, desde donde se pueden observar la flora y fauna autóctonas, como cóndores y guanacos.',
+    rec: 'Importante: la entrada a la Reserva Natural Villavicencio no está incluida en el costo del tour y deberá abonarse directamente en la entrada. Recomendamos desayunar antes de la salida, llevar ropa cómoda, caramelos, agua y documentación personal.'
+  },
+  'city_tour': {
+    name: 'City Tour',
+    keywords: ['CITY TOUR','MENDOZA CITY','TOUR CIUDAD'],
+    desc: 'Esta excursión ofrece un recorrido por las pintorescas calles de la Ciudad de Mendoza, conocidas por sus frondosas arboledas y las tradicionales acequias. Visitaremos el Área Fundacional, la Plaza Pedro del Castillo y las ruinas de la Iglesia de San Francisco. Continuaremos hacia la "Nueva Ciudad", explorando sus principales plazas y el centro cívico. Finalizaremos en el majestuoso Parque General San Martín y el Cerro de la Gloria.',
+    rec: 'Recomendaciones: llevar ropa y calzado cómodo, adecuado para la época del año.'
+  },
+  'canon_atuel': {
+    name: 'Cañón del Atuel',
+    keywords: ['ATUEL','CANON DEL ATUEL','CAÑON DEL ATUEL','SAN RAFAEL'],
+    desc: 'Nos dirigimos por ruta 40 hacia el sur hasta llegar a la Villa 25 de Mayo, el dique embalse El Nihuil y sus centrales hidroeléctricas. Transitaremos el Cañón del Atuel, donde podemos observar geoformas de inigualable belleza. Continuamos hasta Valle Grande, donde paramos para almorzar y practicar actividades de turismo aventura (optativo). Atravesamos el departamento de San Rafael, a 240 km de la Ciudad de Mendoza.',
+    rec: 'Recomendaciones: llevar vestimenta cómoda, caramelos, agua, protección solar y sombrero. Se realiza parada para almorzar en restaurante de la zona. Llevar un cambio de ropa en caso de actividades de aventura (rafting, kayak, tirolesa, etc.). Llevar documentación personal y dinero en efectivo.'
+  },
+  'invierno': {
+    name: 'Invierno',
+    keywords: ['INVIERNO'],
+    desc: '',
+    rec: 'Importante: durante el invierno, las condiciones climáticas pueden volverse impredecibles. Por razones de seguridad y conforme a las disposiciones legales vigentes, el itinerario puede sufrir modificaciones o no completarse en su totalidad. El recorrido se realiza hasta donde lo permitan las condiciones del clima y los controles de Gendarmería Nacional.'
+  }
+};
+
+// Map a raw description to template key (strict keyword match)
+function mapTemplate(rawDesc) {
+  var d = rawDesc.toUpperCase();
+  for(var key in TEMPLATES) {
+    var kws = TEMPLATES[key].keywords;
+    for(var k=0; k<kws.length; k++) {
+      if(d.indexOf(kws[k]) >= 0) return key;
+    }
+  }
+  return null;
+}
+
+// Per-row template state: { rowIndex: [tplKey, tplKey2, ...] }
+var rowTemplates = {};
+var rowNotes = {}; // free text notes per row
+
+function getRowTemplates(i) {
+  return rowTemplates[i] || [];
+}
+
+function toggleRowTemplate(i, key) {
+  if(!rowTemplates[i]) rowTemplates[i] = [];
+  var arr = rowTemplates[i];
+  var pos = arr.indexOf(key);
+  if(pos >= 0) arr.splice(pos, 1);
+  else arr.push(key);
+  // Re-render template panel only
+  var panel = document.getElementById('tpl-'+i);
+  if(panel) panel.innerHTML = buildTplPanel(i);
+}
+
+function buildTplPanel(i) {
+  var active = getRowTemplates(i);
+  var allKeys = Object.keys(TEMPLATES);
+  var ddItems = allKeys.map(function(k) {
+    var isActive = active.indexOf(k) >= 0;
+    return '<div class="tpl-dd-item'+(isActive?' active':'')+'" onclick="toggleRowTemplate('+i+',\''+k+'\');event.stopPropagation()">'+
+      '<span class="tpl-dd-check">'+(isActive?'✓':'')+'</span>'+
+      '<span>'+TEMPLATES[k].name+'</span>'+
+    '</div>';
+  }).join('');
+
+  var chips = active.length ? active.map(function(k) {
+    return '<div class="tpl-chip">'+
+      '<div class="tpl-chip-dot"></div>'+
+      '<span class="tpl-chip-name">'+TEMPLATES[k].name+'</span>'+
+      '<button class="tpl-chip-rm" onclick="toggleRowTemplate('+i+',\''+k+'\');event.stopPropagation()">✕ quitar</button>'+
+    '</div>';
+  }).join('') : '<div class="tpl-none">Sin plantilla — no se incluirá descripción en el PDF</div>';
+
+  var noteVal = rowNotes[i] || '';
+  var hasNote = noteVal.length > 0;
+  var noteSection =
+    '<div class="tpl-note-wrap">'+
+      '<button class="tpl-note-toggle'+(hasNote?' active':'')+'" id="tpl-note-btn-'+i+'" onclick="toggleNote('+i+');event.stopPropagation()">'+
+        (hasNote ? '✏️ Nota personalizada (incluida en PDF)' : '+ Agregar nota personalizada')+
+      '</button>'+
+      '<div id="tpl-note-textarea-'+i+'" style="display:'+(hasNote?'block':'none')+'">'+
+        '<textarea class="tpl-textarea" placeholder="Escribí aquí texto libre que aparecerá en el PDF antes de pasar al próximo servicio..." '+
+          'oninput="saveNote('+i+',this.value)" onclick="event.stopPropagation()">'+noteVal+'</textarea>'+
+      '</div>'+
+    '</div>';
+
+  return '<div class="tpl-hdr">'+
+    '<span class="tpl-lbl">Plantilla de descripción</span>'+
+    '<div class="tpl-add-wrap">'+
+      '<button class="tpl-add-btn" onclick="toggleTplDd('+i+',event)">+ Cambiar / agregar</button>'+
+      '<div class="tpl-dropdown" id="tpdd-'+i+'">'+ddItems+'</div>'+
+    '</div>'+
+  '</div>'+chips+noteSection;
+}
+
+function toggleNote(i) {
+  var wrap = document.getElementById('tpl-note-textarea-'+i);
+  var btn  = document.getElementById('tpl-note-btn-'+i);
+  if(!wrap) return;
+  var hidden = wrap.style.display === 'none' || wrap.style.display === '';
+  wrap.style.display = hidden ? 'block' : 'none';
+  btn.classList.toggle('active', hidden);
+  if(hidden) wrap.querySelector('textarea').focus();
+}
+function saveNote(i, val) {
+  rowNotes[i] = val;
+}
+function toggleTplDd(i, e) {
+  e.stopPropagation();
+  var dd = document.getElementById('tpdd-'+i);
+  var wasOpen = dd.classList.contains('open');
+  document.querySelectorAll('.tpl-dropdown.open').forEach(function(el){el.classList.remove('open');});
+  if(!wasOpen) {
+    dd.classList.add('open');
+    setTimeout(function(){
+      document.addEventListener('click', function close(ev){
+        if(!dd.contains(ev.target)){dd.classList.remove('open');document.removeEventListener('click',close);}
+      });
+    },0);
+  }
+}
+
 function renderP(){
   var pf=document.getElementById('fpax-p').value.toLowerCase().trim();
   var byFile={};
@@ -459,6 +627,12 @@ function renderP(){
       var desc=cleanDesc(r.DESCRIPCION);
       var s=fsel.has(i);
       var tc=t==='TRF'?'trf':t==='EXC'?'exc':t==='HTL'?'htl':'';
+      // Auto-map template on first render
+      if(rowTemplates[i]===undefined) {
+        var mapped = mapTemplate(r.DESCRIPCION||'');
+        rowTemplates[i] = mapped ? [mapped] : [];
+      }
+      var isExcRow = (t==='EXC'||t==='OTR');
       html+='<div class="svc-row '+tc+(s?' sel':'')+'" onclick="togSvcP(\''+esc+'\','+i+',this)">'+
         '<input class="svc-chk" type="checkbox" '+(s?'checked':'')+' onclick="event.stopPropagation();togSvcP(\''+esc+'\','+i+',this.closest(\'.svc-row\'))">'+
         '<div class="svc-body">'+
@@ -471,10 +645,10 @@ function renderP(){
           '<div class="svc-detail">'+
             (r.lugar_origen?r.lugar_origen+(r.lugar_destino?' &rarr; '+r.lugar_destino:'')+'&nbsp;·&nbsp;':'')+
             (r.CANT_PAX||1)+' pax'+
-            (r.observaciones?' &nbsp;·&nbsp; <span style="color:#b08000">'+r.observaciones+'</span>':'')+
           '</div>'+
         '</div>'+
-      '</div>';
+      '</div>'+
+      (isExcRow?'<div class="tpl-panel" id="tpl-'+i+'">'+ buildTplPanel(i) +'</div>':'');
     });
     html+='</div>';
   });
@@ -578,18 +752,18 @@ function genChofer(){
       headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4,minCellHeight:0,halign:'left',valign:'middle',overflow:'hidden'},
       alternateRowStyles:{fillColor:[249,249,249]},
       columnStyles:{
-        0:{cellWidth:13,fontStyle:'bold',textColor:cNG,fontSize:9},
-        1:{cellWidth:42},
-        2:{cellWidth:14,halign:'left'},
-        3:{cellWidth:16,textColor:cTRF},
+        0:{cellWidth:15,fontStyle:'bold',textColor:cNG,fontSize:9,overflow:'hidden'},
+        1:{cellWidth:40},
+        2:{cellWidth:14,halign:'left',overflow:'hidden'},
+        3:{cellWidth:16,textColor:cTRF,overflow:'hidden'},
         4:{cellWidth:38},
-        5:{cellWidth:12,halign:'center'},
+        5:{cellWidth:12,halign:'center',overflow:'hidden'},
         6:{cellWidth:24},
         7:{cellWidth:24},
         8:{cellWidth:20},
         9:{cellWidth:20},
-        10:{cellWidth:36,fontSize:7,textColor:[120,100,0]},
-        11:{cellWidth:14,textColor:[120,120,120]}
+        10:{cellWidth:34,fontSize:7,textColor:[120,100,0]},
+        11:{cellWidth:16,textColor:[120,120,120],overflow:'hidden'}
       },
       didParseCell:function(data){
         if(data.section==='head'){
@@ -606,11 +780,21 @@ function genChofer(){
       },
       tableLineColor:cBD,tableLineWidth:0.2,
     });
-    // Footer
-    doc.addImage(_LOGO_B64,'JPEG',ML,PH-11,20,10);
-    doc.setFont('helvetica','normal');st(doc,[160,160,160]);
-    doc.text('Total: '+dayRows.length+' servicios  \u00b7  '+dayRows.reduce(function(s,r){return s+(Number(r.CANT_PAX)||1);},0)+' pax',ML+25,PH-5);
-    doc.text((di+1)+' / '+dates.length,PW-MR,PH-5,{align:'right'});
+    // Footer - dark band on every page, logo only on last
+    var isLastPage = (di===dates.length-1);
+    sf(doc,cND);doc.rect(0,PH-14,PW,14,'F');
+    sf(doc,cNG);doc.rect(0,PH-14,PW,1,'F');
+    if(isLastPage){
+      doc.addImage(_LOGO_B64,'JPEG',ML,PH-13,26,12);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
+      var totalSvc=Object.values(byDate).reduce(function(s,arr){return s+arr.length;},0);
+      var totalPax=Object.values(byDate).reduce(function(s,arr){return s+arr.reduce(function(s2,x){return s2+(Number(x.CANT_PAX)||1);},0);},0);
+      doc.text('Total: '+totalSvc+' servicios  \u00b7  '+totalPax+' pax',ML+30,PH-6);
+      doc.text(dates.length+' dia'+(dates.length>1?'s':''),PW-MR,PH-6,{align:'right'});
+    } else {
+      doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
+      doc.text((di+1)+' / '+dates.length,PW-MR,PH-6,{align:'right'});
+    }
   });
   var ds=(rows.c[0]&&fmtDate(rows.c[0].FECHA_in))||'hoy';
   doc.save('nites_chofer_'+ds.replace(/\//g,'-')+'.pdf');
@@ -631,7 +815,12 @@ async function genPax(){
     var fid=toGen[fi][0],fsel=toGen[fi][1];
     document.getElementById('plbl-p').textContent='Generando PDF '+(fi+1)+' de '+toGen.length+'...';
     document.getElementById('pfill-p').style.width=Math.round((fi/toGen.length)*100)+'%';
-    var fileRows=rows.p.filter(function(r,i){return String(r.ID_FILE||'_'+i)===fid&&fsel.has(i);});
+    var fileRows=rows.p.reduce(function(arr,r,i){
+      if(String(r.ID_FILE||'_'+i)===fid&&fsel.has(i)){
+        var copy=Object.assign({},r); copy._rowIdx=i; arr.push(copy);
+      }
+      return arr;
+    },[]);
     if(!fileRows.length)continue;
     var pdf=buildPaxPDF(fileRows);
     var paxName=fileRows[0].pax_nombre||fileRows[0].NOMBRE_FILE||'File '+fid;
@@ -662,6 +851,84 @@ async function dlZip(){
   window._pdfs.forEach(function(p){zip.file(p.name,p.doc.output('arraybuffer'));});
   var blob=await zip.generateAsync({type:'blob'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nites_itinerarios.zip';a.click();
+}
+
+
+// ── HUMANIZE SERVICE DESCRIPTION (pax PDF only) ──
+function humanizeDesc(raw) {
+  var d = (raw||'').toUpperCase().trim();
+
+  // ── TRANSFERS ──
+  if(d.indexOf('TRF')>=0 || d.indexOf('TRANSFER')>=0 || d.indexOf('TRASLADO')>=0) {
+    var isIn  = d.indexOf(' IN ')>=0 || d.indexOf('IN APTO')>=0 || d.indexOf('IN AEROPUERTO')>=0 || d.indexOf('LLEGADA')>=0;
+    var isOut = d.indexOf(' OUT ')>=0 || d.indexOf('OUT ')>=0 || d.indexOf('SALIDA')>=0;
+    var hasApto  = d.indexOf('APTO')>=0 || d.indexOf('AEROPUERTO')>=0 || d.indexOf('MDZ')>=0;
+    var hasHotel = d.indexOf('HOTEL')>=0 || d.indexOf('HTL')>=0 || d.indexOf('CENTRICO')>=0 || d.indexOf('DIPLOMATICO')>=0 || d.indexOf('ACONCAGUA')>=0 || d.indexOf('HYATT')>=0 || d.indexOf('SHERATON')>=0 || d.indexOf('HUENTALA')>=0 || d.indexOf('CAROLLO')>=0;
+    var hasBodega= d.indexOf('POSADAS')>=0 || d.indexOf('MAIPU')>=0 || d.indexOf('LUJAN')>=0 || d.indexOf('BODEGA')>=0;
+    // Infer direction from word position when IN/OUT not explicit
+    if(!isIn && !isOut && hasApto && hasHotel) {
+      var aptoPos = Math.max(d.indexOf('APTO'), d.indexOf('AEROPUERTO'), d.indexOf('MDZ'));
+      var hotelPos = Math.max(d.indexOf('HOTEL'), d.indexOf('HTL'), d.indexOf('CENTRICO'));
+      isIn = aptoPos < hotelPos; // apto mentioned first = coming FROM airport
+      isOut = !isIn;
+    }
+    if(hasApto && hasHotel) {
+      if(isIn)  return 'Transfer desde Aeropuerto de Mendoza hacia hotel';
+      if(isOut) return 'Transfer desde hotel hacia Aeropuerto de Mendoza';
+    }
+    if(hasApto) {
+      if(isIn)  return 'Transfer desde Aeropuerto de Mendoza';
+      if(isOut) return 'Transfer hacia Aeropuerto de Mendoza';
+      return 'Transfer Aeropuerto de Mendoza';
+    }
+    if(hasHotel) {
+      if(isIn)  return 'Transfer hacia hotel';
+      if(isOut) return 'Transfer desde hotel';
+    }
+    if(hasBodega) return 'Transfer hacia bodega';
+    if(d.indexOf('VAN')>=0) return 'Transfer en van';
+    // Last resort: use origen/destino from raw desc
+    var rawClean = (raw||'').replace(/^\(\d+\)\s*/,'').replace(/(TRF|REG|PRIV|CONV|OUT|IN)/gi,' ').replace(/\s{2,}/g,' ').trim();
+    return rawClean.length > 4 ? rawClean : 'Transfer';
+  }
+
+  // ── EXCURSIONS ──
+  var isFD  = d.indexOf('FD ')>=0 || d.indexOf('FULL DAY')>=0;
+  var isHD  = d.indexOf('HD ')>=0 || d.indexOf('HALF DAY')>=0;
+  var prefix = isFD ? 'Excursion full day' : isHD ? 'Excursion medio dia' : 'Excursion';
+
+  if(d.indexOf('ALTA MONTA')>=0) return prefix+' Alta Montana';
+  if(d.indexOf('POTRERILLOS')>=0) return prefix+' Potrerillos y Alta Montana';
+  if(d.indexOf('CAMINOS DEL VINO')>=0 && d.indexOf('VALLE DE UCO')>=0) return prefix+' Caminos del Vino en Valle de Uco';
+  if(d.indexOf('CAMINOS DEL VINO')>=0) return prefix+' Caminos del Vino';
+  if(d.indexOf('CACHEUTA')>=0 || d.indexOf('TERMAS')>=0) return prefix+' Termas Cacheuta con almuerzo';
+  if(d.indexOf('BODEGAS')>=0 && d.indexOf('ACEIT')>=0) return prefix+' Bodegas y Aceitera';
+  if(d.indexOf('BODEGAS')>=0 && d.indexOf('OLIVA')>=0) return prefix+' Mendoza: Vino y Oliva';
+  if(d.indexOf('ZUCCARDI')>=0 || d.indexOf('SANTA JULIA')>=0) {
+    return prefix+(d.indexOf('ENEMIGO')>=0?' Bodegas El Enemigo y Santa Julia Zuccardi':' Bodega Santa Julia Zuccardi');
+  }
+  if(d.indexOf('ENEMIGO')>=0) return prefix+' Bodega El Enemigo';
+  if(d.indexOf('THE VINES')>=0) return prefix+' The Vines of Mendoza';
+  if(d.indexOf('MENDOZA')>=0 && d.indexOf('VINO')>=0) return prefix+' Mendoza: Vino y Ciudad';
+
+  // ── ACCOMMODATION ──
+  if(d.indexOf('ALOJAMIENTO')>=0 || d.indexOf('ALOJ')>=0) return 'Alojamiento';
+
+  // ── FALLBACK: strip ALL internal codes, title case ──
+  var clean = (raw||'')
+    .replace(/^\(\d+\)\s*/,'')
+    .replace(/\([^)]*\)/g,'')
+    .replace(/\b(EXC|TRF|REG|PRIV|CONV|FD|HD|SIB|CONVENCIONAL|OUT|IN)\b/gi,' ')
+    .replace(/^[\s\-\/]+/,'')
+    .replace(/[\s\-\/]+$/,'')
+    .replace(/\s{2,}/g,' ').trim();
+  if(!clean) return raw;
+  var skipWords=['DE','DEL','Y','A','EN','CON','AL','LA','LO','LAS','LOS'];
+  return clean.split(' ').map(function(w){
+    if(!w) return '';
+    if(skipWords.indexOf(w.toUpperCase())>=0) return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+    return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+  }).join(' ').trim();
 }
 
 function buildPaxPDF(fileRows){
@@ -757,20 +1024,20 @@ function buildPaxPDF(fileRows){
       // 3. By hora
       return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
     });
+    var PILL_W=20, PILL_CX=ML+PILL_W/2, PILL_R=4;
+    var CONTENT_X=ML+PILL_W+5, CONTENT_W=CW-PILL_W-5;
+    var LINE_X=PILL_CX;
+
     dayRows.forEach(function(r,ri){
       var h=fmtH(r.hora_PICK_UP);
-      var desc=cleanDesc(r.DESCRIPCION);
+      var desc=humanizeDesc(cleanDesc(r.DESCRIPCION));
       var vu=r.VUELO||r.vuelo_origen||'';
-      var hasPill=!!h;
-      var PILL_W=20;  // pill column width
-      var CONTENT_X=hasPill?ML+PILL_W+4:ML;
-      var CONTENT_W=hasPill?CW-PILL_W-4:CW;
+      var isLast=(ri===dayRows.length-1);
 
-      // Pre-measure all content
+      // Pre-measure content
       doc.setFont('helvetica','bold');doc.setFontSize(10);
       var titleLines=doc.splitTextToSize(desc,CONTENT_W);
       var titleH=titleLines.length*5.2;
-
       var details=[];
       if(vu)details.push('Vuelo: '+vu);
       if(r.guia_nombre)details.push('Guia: '+r.guia_nombre);
@@ -779,79 +1046,146 @@ function buildPaxPDF(fileRows){
       var detailLine=details.join('  \u00b7  ');
       var detailLines=detailLine?doc.splitTextToSize(detailLine,CONTENT_W):[];
       var detailH=detailLines.length*4.2;
-
-      var obsLines=[];
-      var obsH=0;
-
-      var contentH=titleH+(detailLines.length?detailH+3:0)+obsH;
-      var pillH=hasPill?9:0;
-      var blockH=Math.max(contentH,pillH)+10;
+      var contentH=titleH+(detailLines.length?detailH+3:0);
+      var blockH=Math.max(contentH,8)+10;
 
       if(y+blockH>PH-50){doc.addPage();y=20;}
-
       var blockTop=y;
+      var pillBottom=blockTop+8; // bottom of pill area
 
-      // LEFT: time pill (top-aligned in block)
-      if(hasPill){
+      // ── TIMELINE LEFT COLUMN ──
+      if(h){
+        // Green pill with hour
         sf(doc,cNG);doc.roundedRect(ML,blockTop,PILL_W,8,2,2,'F');
         doc.setFont('helvetica','bold');doc.setFontSize(8.5);st(doc,cWH);
-        doc.text(h,ML+PILL_W/2,blockTop+5.5,{align:'center'});
+        doc.text(h,PILL_CX,blockTop+5.5,{align:'center'});
+      } else {
+        // No hour: small circle dot on timeline
+        sf(doc,[200,200,200]);doc.circle(PILL_CX,blockTop+4,2,'F');
+        sf(doc,cNG);doc.circle(PILL_CX,blockTop+4,1,'F');
       }
 
-      // RIGHT: title
-      var cx=CONTENT_X;
+      // Vertical connecting line from pill bottom to next block top
+      // Draw it behind content - from pill bottom down through block gap
+      if(!isLast){
+        var lineTop=pillBottom+1;
+        var lineBot=blockTop+blockH+3; // reaches next block
+        sd(doc,cNG);doc.setLineWidth(0.6);
+        doc.setLineDashPattern([1.5,1.5],0);
+        doc.line(LINE_X,lineTop,LINE_X,lineBot);
+        doc.setLineDashPattern([],0);
+      }
+
+      // ── RIGHT: content ──
       var cy=blockTop;
       doc.setFont('helvetica','bold');doc.setFontSize(10);st(doc,cND);
-      doc.text(titleLines,cx,cy+5.5);
+      doc.text(titleLines,CONTENT_X,cy+5.5);
       cy+=titleH+2;
-
-      // RIGHT: details row
       if(detailLines.length){
         doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[110,110,110]);
-        doc.text(detailLines,cx,cy+4);
+        doc.text(detailLines,CONTENT_X,cy+4);
         cy+=detailH+3;
       }
 
-      // observations removed per requirements
+      // ── Template content (desc + rec) ──
+      var rowTpls=(typeof rowTemplates!=='undefined'&&r._rowIdx!==undefined)?rowTemplates[r._rowIdx]||[]:[];
+      if(rowTpls.length){
+        if(cy>blockTop) {
+          sd(doc,[210,235,170]);doc.setLineWidth(0.25);
+          doc.line(CONTENT_X,cy+2,ML+CW,cy+2);
+          cy+=6;
+        }
+        rowTpls.forEach(function(key){
+          var tpl=TEMPLATES[key];
+          if(!tpl)return;
+          var parts=[];
+          if(tpl.desc) parts.push(tpl.desc);
+          if(tpl.rec) parts.push(tpl.rec);
+          if(!parts.length)return;
+          doc.setFontSize(8.5);st(doc,[85,85,85]);
+          parts.forEach(function(para){
+            // Split on Recomendaciones/Importante labels to render them bold
+            var segments=para.split(/(Recomendaciones:|Recomendaciones|Importante:)/i);
+            segments.forEach(function(seg,si){
+              if(!seg.trim())return;
+              var isBold=/^(Recomendaciones:?|Importante:?)$/i.test(seg.trim());
+              doc.setFont('helvetica', isBold?'bold':'normal');
+              if(isBold) st(doc,cND); else st(doc,[85,85,85]);
+              var plines=doc.splitTextToSize(seg.trim(),CONTENT_W);
+              if(cy+plines.length*4+10>PH-50){doc.addPage();blockTop=0;cy=18;}
+              doc.text(plines,CONTENT_X,cy+4);
+              cy+=plines.length*(isBold?5:4)+2;
+            });
+            cy+=2;
+          });
+        });
+      }
 
-      y=blockTop+Math.max(cy-blockTop,pillH+2)+6;
+      // ── Free text note ──
+      var noteText = (typeof rowNotes!=='undefined'&&r._rowIdx!==undefined) ? (rowNotes[r._rowIdx]||'') : '';
+      if(noteText.trim()) {
+        if(cy > blockTop) {
+          // Separator between template content and note
+          sd(doc,[200,200,200]);doc.setLineWidth(0.25);
+          doc.setLineDashPattern([1,1],0);
+          doc.line(CONTENT_X,cy+2,ML+CW,cy+2);
+          doc.setLineDashPattern([],0);
+          cy+=6;
+        }
+        doc.setFont('helvetica','normal');doc.setFontSize(9);st(doc,cND);
+        var nlines=doc.splitTextToSize(noteText.trim(),CONTENT_W);
+        if(cy+nlines.length*4.5+10>PH-50){doc.addPage();blockTop=0;cy=18;}
+        doc.text(nlines,CONTENT_X,cy+4);
+        cy+=nlines.length*4.5+3;
+      }
 
-      // Separator
-      sd(doc,cBD);doc.setLineWidth(0.25);
-      doc.line(ML,y-2,ML+CW,y-2);
+      y=blockTop+Math.max(cy-blockTop,9)+7;
     });
-    y+=4;
+    y+=2;
   });
 
   // ── CLOSING ──
-  if(y>PH-92){doc.addPage();y=18;}
-  else{y=Math.max(y+10,PH-90);}
-  sf(doc,cLG);doc.rect(ML,y,CW,72,'F');
-  sf(doc,cNG);doc.rect(ML,y,3,72,'F');
-  var cy=y+7;
-  doc.setFont('helvetica','bold');doc.setFontSize(10);st(doc,cND);
-  doc.text('Informacion de contacto',ML+8,cy);cy+=6;
-  doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[70,70,70]);
-  var p1l=doc.splitTextToSize('Para cualquier consulta relacionada con los servicios contratados, nuestro equipo se encuentra a su disposicion.',CW-12);
-  doc.text(p1l,ML+8,cy);cy+=p1l.length*4+4;
-  doc.setFont('helvetica','bold');doc.setFontSize(8.5);st(doc,cND);
-  doc.text('Antes y durante su viaje',ML+8,cy);cy+=4.5;
-  doc.setFont('helvetica','normal');st(doc,[70,70,70]);
-  doc.text('Atencion de 07:00 a 20:00 hs (UTC-3, horario de Argentina):',ML+8,cy);cy+=4.5;
-  doc.setFont('helvetica','bold');doc.setFontSize(11);st(doc,cNG);
-  doc.text('+54 9 261 303-3646',ML+8,cy);cy+=7;
-  doc.setFont('helvetica','bold');doc.setFontSize(8.5);st(doc,cND);
-  doc.text('Asistencia de emergencia',ML+8,cy);cy+=4.5;
-  doc.setFont('helvetica','normal');st(doc,[70,70,70]);
-  var emgl=doc.splitTextToSize('En caso de una emergencia, puede contactarnos por llamada las 24 horas:',CW-12);
-  doc.text(emgl,ML+8,cy);cy+=emgl.length*4+1;
-  doc.setFont('helvetica','bold');doc.setFontSize(11);st(doc,cNG);
-  doc.text('+54 9 261 303-3646',ML+8,cy);cy+=7;
-  doc.setFont('helvetica','italic');doc.setFontSize(8);st(doc,[110,110,110]);
-  var recl=doc.splitTextToSize('Le recomendamos conservar esta informacion para poder contactarnos rapidamente en caso de necesitar asistencia.',CW-12);
-  doc.text(recl,ML+8,cy);cy+=recl.length*3.8+4;
+  // Always start on new area with enough room, or new page
+  if(y>PH-75){doc.addPage();y=18;}
+  else{y=y+12;}
+
+  // ── Green section header band (like day header but green) ──
+  sf(doc,cNG);doc.rect(ML,y,CW,11,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);st(doc,cWH);
+  doc.text('Informacion de contacto',ML+8,y+7.8);
+  y+=16;
+
+  // ── White content area ──
+  // Intro
+  doc.setFont('helvetica','normal');doc.setFontSize(9);st(doc,[70,70,70]);
+  var p1l=doc.splitTextToSize('Para cualquier consulta relacionada con los servicios contratados, nuestro equipo se encuentra a su disposicion.',CW);
+  doc.text(p1l,ML,y);y+=p1l.length*4.5+6;
+
+  // Before/during
   doc.setFont('helvetica','bold');doc.setFontSize(9);st(doc,cND);
-  doc.text('Le deseamos un viaje inolvidable y una maravillosa experiencia en nuestra provincia.',ML+8,cy);
+  doc.text('Antes y durante su viaje',ML,y);y+=5;
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[90,90,90]);
+  doc.text('Atencion de 07:00 a 20:00 hs (UTC-3, horario de Argentina):',ML,y);y+=5;
+  doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cNG);
+  doc.text('+54 9 261 303-3646',ML,y);y+=8;
+
+  // Emergency
+  doc.setFont('helvetica','bold');doc.setFontSize(9);st(doc,cND);
+  doc.text('Asistencia de emergencia 24 horas',ML,y);y+=5;
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[90,90,90]);
+  doc.text('En caso de emergencia durante su viaje puede contactarnos por llamada:',ML,y);y+=5;
+  doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cNG);
+  doc.text('+54 9 261 303-3646',ML,y);y+=8;
+
+  // Recommendation
+  doc.setFont('helvetica','italic');doc.setFontSize(8);st(doc,[140,140,140]);
+  var recl=doc.splitTextToSize('Le recomendamos conservar esta informacion para poder contactarnos rapidamente en caso de necesitar asistencia.',CW);
+  doc.text(recl,ML,y);y+=recl.length*3.8+6;
+
+  // Farewell
+  doc.setFont('helvetica','bold');doc.setFontSize(9.5);st(doc,cND);
+  doc.text('Le deseamos un viaje inolvidable y una maravillosa experiencia en nuestra provincia.',ML,y);
+
 
   // ── FOOTER ──
   var totalPages=doc.getNumberOfPages();
