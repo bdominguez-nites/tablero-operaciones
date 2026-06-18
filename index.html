@@ -390,13 +390,9 @@ function renderC(){
   var html='';
   choferNames.forEach(function(chofer){
     var items=byChofer[chofer].slice().sort(function(a,b){
-      // fecha → reserva → file → hora
+      // fecha → hora
       var da=fmtDate(a.r.FECHA_in)||'', db=fmtDate(b.r.FECHA_in)||'';
       if(da!==db){ var pa=da.split('/'),pb=db.split('/'); return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0])); }
-      var ra=Number(String(a.r.ID_FILE||'').split('/')[0])||0, rb=Number(String(b.r.ID_FILE||'').split('/')[0])||0;
-      if(ra!==rb)return ra-rb;
-      var fa=String(a.r.ID_FILE||''),fb=String(b.r.ID_FILE||'');
-      if(fa!==fb)return fa<fb?-1:1;
       return(Number(a.r.hora_PICK_UP)||9999)-(Number(b.r.hora_PICK_UP)||9999);
     });
     var dayId='d'+chofer.replace(/[^a-zA-Z0-9]/g,'_');
@@ -731,16 +727,12 @@ function genChofer(){
 
     // Sort: fecha → reserva → file → hora
     choferRows.sort(function(a,b){
+      // fecha → hora
       var da=fmtDate(a.FECHA_in)||'',db=fmtDate(b.FECHA_in)||'';
       if(da!==db){
         var pa=da.split('/'),pb=db.split('/');
         return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0]));
       }
-      var ra=Number(String(a.ID_FILE||'').split('/')[0])||0;
-      var rb=Number(String(b.ID_FILE||'').split('/')[0])||0;
-      if(ra!==rb)return ra-rb;
-      var fa=String(a.ID_FILE||''),fb=String(b.ID_FILE||'');
-      if(fa!==fb)return fa<fb?-1:1;
       return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
     });
 
@@ -1293,7 +1285,8 @@ function buildPaxPDF(fileRows){
   var recl=doc.splitTextToSize('Le recomendamos conservar esta informacion para poder contactarnos rapidamente en caso de necesitar asistencia.',CW);
   doc.text(recl,ML,y);y+=recl.length*3.8+6;
 
-  // Farewell
+  // Farewell - ensure it fits before footer
+  if(y+10>PH-14){doc.addPage();y=20;}
   doc.setFont('helvetica','bold');doc.setFontSize(9.5);st(doc,cND);
   doc.text('Le deseamos un viaje inolvidable y una maravillosa experiencia en nuestra provincia.',ML,y);
 
