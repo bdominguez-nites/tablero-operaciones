@@ -75,7 +75,7 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 .sel-badge{background:var(--nd);color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;align-self:flex-end}
 
 /* ── DAY GROUPS ── */
-.day-group{border-radius:var(--r);overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow)}
+.day-group{border-radius:var(--r);margin-bottom:10px;box-shadow:var(--shadow)}
 .day-hdr{background:var(--nd);padding:11px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;border-left:4px solid var(--ng)}
 .day-hdr:hover{background:#2d2d2d}
 .day-hdr-title{font-size:12px;font-weight:700;color:#fff;flex:1;letter-spacing:.3px}
@@ -131,10 +131,10 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 .tpl-panel{background:#f6fdf0;border-top:1px dashed #c5eba0;padding:10px 16px 12px 42px}
 .tpl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .tpl-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ngd)}
-.tpl-add-wrap{position:relative}
+.tpl-add-wrap{position:relative;overflow:visible}
 .tpl-add-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--bd);background:#fff;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
 .tpl-add-btn:hover{border-color:var(--ng);color:var(--ng)}
-.tpl-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:#fff;border:1px solid var(--bd);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:220px}
+.tpl-dropdown{display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:200;background:#fff;border:1px solid var(--bd);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:220px;max-height:220px;overflow-y:auto}
 .tpl-dropdown.open{display:block}
 .tpl-dd-item{padding:9px 14px;font-size:12px;color:var(--txt);cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);transition:background .1s}
 .tpl-dd-item:last-child{border-bottom:none}
@@ -209,7 +209,7 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 
     <div id="main-c" style="display:none">
       <hr class="divider">
-      <div class="step"><div class="step-num">2</div><div class="step-lbl">Seleccionar servicios</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-lbl">Seleccionar servicios por chofer</div></div>
       <div class="filter-row">
         <div class="filter-group">
           <span class="filter-lbl">Tipo</span>
@@ -371,34 +371,52 @@ function chipType(t){
 function renderC(){
   var tf=document.querySelector('#panel-c select').value;
   var pf=document.getElementById('fpax-c').value.toLowerCase().trim();
-  var byDate={};
+
+  // Group by CHOFER name
+  var byChofer={};
   rows.c.forEach(function(r,i){
     var t=gtype(r.DESCRIPCION);
     if(tf&&t!==tf)return;
     if(pf&&(r.pax_nombre||'').toLowerCase().indexOf(pf)<0)return;
-    var d=fmtDate(r.FECHA_in)||'Sin fecha';
-    if(!byDate[d])byDate[d]=[];
-    byDate[d].push({r:r,i:i});
+    var chofer=(r.chofer_nombre||'').trim();
+    if(!chofer)return; // skip rows without chofer_nombre
+    if(!byChofer[chofer])byChofer[chofer]=[];
+    byChofer[chofer].push({r:r,i:i});
   });
-  var dates=Object.keys(byDate).sort(function(a,b){
-    var pa=a.split('/'),pb=b.split('/');
-    return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0]));
-  });
-  if(!dates.length){document.getElementById('days-c').innerHTML='<div class="empty-state">No hay servicios para mostrar</div>';updC();return;}
+  var choferNames=Object.keys(byChofer).sort();
+
+  if(!choferNames.length){document.getElementById('days-c').innerHTML='<div class="empty-state">No hay servicios para mostrar</div>';updC();return;}
+
   var html='';
-  dates.forEach(function(date){
-    var items=byDate[date].sort(function(a,b){return(Number(a.r.hora_PICK_UP)||9999)-(Number(b.r.hora_PICK_UP)||9999);});
-    var dayId='d'+date.replace(/\//g,'');
+  choferNames.forEach(function(chofer){
+    var items=byChofer[chofer].slice().sort(function(a,b){
+      // fecha → reserva → file → hora
+      var da=fmtDate(a.r.FECHA_in)||'', db=fmtDate(b.r.FECHA_in)||'';
+      if(da!==db){ var pa=da.split('/'),pb=db.split('/'); return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0])); }
+      var ra=Number(String(a.r.ID_FILE||'').split('/')[0])||0, rb=Number(String(b.r.ID_FILE||'').split('/')[0])||0;
+      if(ra!==rb)return ra-rb;
+      var fa=String(a.r.ID_FILE||''),fb=String(b.r.ID_FILE||'');
+      if(fa!==fb)return fa<fb?-1:1;
+      return(Number(a.r.hora_PICK_UP)||9999)-(Number(b.r.hora_PICK_UP)||9999);
+    });
+    var dayId='d'+chofer.replace(/[^a-zA-Z0-9]/g,'_');
     _dayMap[dayId]=items.map(function(x){return x.i;});
     var allSel=items.every(function(x){return selC.has(x.i);});
     html+='<div class="day-group">';
-    html+='<div class="day-hdr" onclick="toggleDay(\''+dayId+'\')">'+
-      '<input class="day-chk" type="checkbox" '+(allSel?'checked':'')+' onclick="event.stopPropagation();toggleDay(\''+dayId+'\')">'+
-      '<span class="day-hdr-title">'+dayLabel(date).toUpperCase()+'</span>'+
+    html+='<div class="day-hdr" onclick="toggleDay(\'' + dayId + '\')">'+
+      '<input class="day-chk" type="checkbox" '+(allSel?'checked':'')+' onclick="event.stopPropagation();toggleDay(\'' + dayId + '\')">'+
+      '<span class="day-hdr-title">'+chofer+'</span>'+
       '<span class="day-hdr-count">'+items.length+' svc</span>'+
     '</div>';
+    // Group by date within chofer for display
+    var curDate='';
     items.forEach(function(x){
       var r=x.r,i=x.i,t=gtype(r.DESCRIPCION);
+      var d=fmtDate(r.FECHA_in)||'';
+      if(d!==curDate){
+        curDate=d;
+        if(d) html+='<div class="date-divider">'+dayLabel(d)+'</div>';
+      }
       var h=fmtH(r.hora_PICK_UP),vu=r.VUELO||r.vuelo_origen||'';
       var desc=cleanDesc(r.DESCRIPCION);
       var s=selC.has(i);
@@ -427,6 +445,7 @@ function renderC(){
   document.getElementById('days-c').innerHTML=html;
   updC();
 }
+
 function toggleDay(dayId){
   var idx=_dayMap[dayId]||[];
   var all=idx.every(function(i){return selC.has(i);});
@@ -513,10 +532,10 @@ function toggleRowTemplate(i, key) {
   var pos = arr.indexOf(key);
   if(pos >= 0) arr.splice(pos, 1);
   else arr.push(key);
-  // Re-render template panel only
   var panel = document.getElementById('tpl-'+i);
-  if(panel) panel.innerHTML = buildTplPanel(i);
+  if(panel) panel.innerHTML = buildTplPanel(i, _excRows[i]);
 }
+var _excRows = {}; // tracks which rows are EXC type
 
 function buildTplPanel(i, showTemplates) {
   var active = getRowTemplates(i);
@@ -636,6 +655,7 @@ function renderP(){
         rowTemplates[i] = mapped ? [mapped] : [];
       }
       var isExcRow = (t==='EXC'||t==='OTR');
+      _excRows[i] = isExcRow;
       html+='<div class="svc-row '+tc+(s?' sel':'')+'" onclick="togSvcP(\''+esc+'\','+i+',this)">'+
         '<input class="svc-chk" type="checkbox" '+(s?'checked':'')+' onclick="event.stopPropagation();togSvcP(\''+esc+'\','+i+',this.closest(\'.svc-row\'))">'+
         '<div class="svc-body">'+
@@ -691,123 +711,178 @@ function sd(doc,c){doc.setDrawColor(c[0],c[1],c[2]);}
 function genChofer(){
   if(!selC.size)return;
   var selRows=rows.c.filter(function(r,i){return selC.has(i);});
-  var byDate={};
+
+  // Group by chofer name
+  var byChofer={};
   selRows.forEach(function(r){
-    var d=fmtDate(r.FECHA_in)||'Sin fecha';
-    if(!byDate[d])byDate[d]=[];
-    byDate[d].push(r);
+    var chofer=(r.chofer_nombre||'').trim();
+    if(!chofer)return; // skip rows without chofer_nombre
+    if(!byChofer[chofer])byChofer[chofer]=[];
+    byChofer[chofer].push(r);
   });
-  var dates=Object.keys(byDate).sort(function(a,b){
-    var pa=a.split('/'),pb=b.split('/');
-    return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0]));
-  });
+  var choferNames=Object.keys(byChofer).sort();
+
+  // Build one PDF per chofer, collect for download
   var {jsPDF}=window.jspdf;
-  var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  var PW=297,PH=210,ML=12,MR=12;
-  dates.forEach(function(date,di){
-    if(di>0)doc.addPage();
-    // Header band
-    sf(doc,cND);doc.rect(0,0,PW,20,'F');
-    sf(doc,cNG);doc.rect(0,20,PW,1.5,'F');
-    doc.addImage(_LOGO_B64,'JPEG',ML,2,34,16);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    st(doc,[160,160,160]);doc.text('HOJA DE SERVICIO  \u00b7  CHOFER / PROVEEDOR',PW-MR,14,{align:'right'});
-    // Day title
-    var y=26;
-    doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cND);
-    doc.text(dayLabel(date).toUpperCase(),ML,y+6);
-    y+=10;
-    sf(doc,cNG);doc.rect(ML,y,PW-ML-MR,0.6,'F');y+=5;
-    // Table
-    var dayRows=byDate[date].slice().sort(function(a,b){
-      // 1. By reserva number (numeric part of ID_FILE before '/')
+  var pdfs=[];
+
+  choferNames.forEach(function(chofer){
+    var choferRows=byChofer[chofer];
+
+    // Sort: fecha → reserva → file → hora
+    choferRows.sort(function(a,b){
+      var da=fmtDate(a.FECHA_in)||'',db=fmtDate(b.FECHA_in)||'';
+      if(da!==db){
+        var pa=da.split('/'),pb=db.split('/');
+        return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0]));
+      }
       var ra=Number(String(a.ID_FILE||'').split('/')[0])||0;
       var rb=Number(String(b.ID_FILE||'').split('/')[0])||0;
-      if(ra!==rb) return ra-rb;
-      // 2. By file (full ID_FILE string)
-      var fa=String(a.ID_FILE||''), fb=String(b.ID_FILE||'');
-      if(fa!==fb) return fa<fb?-1:1;
-      // 3. By hora
+      if(ra!==rb)return ra-rb;
+      var fa=String(a.ID_FILE||''),fb=String(b.ID_FILE||'');
+      if(fa!==fb)return fa<fb?-1:1;
       return(Number(a.hora_PICK_UP)||9999)-(Number(b.hora_PICK_UP)||9999);
     });
-    var tableData=dayRows.map(function(r){
-      return[
-        fmtH(r.hora_PICK_UP)||'—',
-        cleanDesc(r.DESCRIPCION),
-        r.categoria||r.VEHICULO||'',
-        r.VUELO||r.vuelo_origen||'',
-        r.pax_nombre||r.NOMBRE_FILE||'',
-        String(r.CANT_PAX||1),
-        r.lugar_origen||'',
-        r.lugar_destino||'',
-        r.guia_nombre||r.GUIA||'',
-        r.chofer_nombre||r.TRANSPORTE||'',
-        r.observaciones||'',
-        String(r.ID_FILE||'')
-      ];
+
+    // Group by date for section headers within this chofer's PDF
+    var byDate={};
+    choferRows.forEach(function(r){
+      var d=fmtDate(r.FECHA_in)||'Sin fecha';
+      if(!byDate[d])byDate[d]=[];
+      byDate[d].push(r);
     });
-    doc.autoTable({
-      startY:y,
-      margin:{left:ML,right:MR},
-      head:[['Hora','Servicio','Cat','Vuelo','Nombre Pax','Pax','Origen','Destino','Guia','Chofer','Observaciones','File']],
-      body:tableData,
-      styles:{fontSize:7.5,cellPadding:3,valign:'top',textColor:[40,40,40],overflow:'linebreak'},
-      headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4,minCellHeight:0,halign:'left',valign:'middle',overflow:'hidden'},
-      alternateRowStyles:{fillColor:[249,249,249]},
-      columnStyles:{
-        0:{cellWidth:15,fontStyle:'bold',textColor:cNG,fontSize:9,overflow:'hidden'},
-        1:{cellWidth:40},
-        2:{cellWidth:14,halign:'left',overflow:'hidden'},
-        3:{cellWidth:16,textColor:cTRF,overflow:'hidden'},
-        4:{cellWidth:38},
-        5:{cellWidth:12,halign:'center',overflow:'hidden'},
-        6:{cellWidth:24},
-        7:{cellWidth:24},
-        8:{cellWidth:20},
-        9:{cellWidth:20},
-        10:{cellWidth:34,fontSize:7,textColor:[120,100,0]},
-        11:{cellWidth:16,textColor:[120,120,120],overflow:'hidden'}
-      },
-      didParseCell:function(data){
-        if(data.section==='head'){
-          data.cell.styles.halign='left';
-          data.cell.styles.valign='middle';
-          data.cell.styles.overflow='hidden';
-          data.cell.styles.cellPadding=3;
-        }
-        if(data.column.index===0&&data.section==='body'){
-          data.cell.styles.fontStyle='bold';
-          data.cell.styles.textColor=cNG;
-          data.cell.styles.fontSize=9;
-        }
-      },
-      tableLineColor:cBD,tableLineWidth:0.2,
+    var dates=Object.keys(byDate).sort(function(a,b){
+      var pa=a.split('/'),pb=b.split('/');
+      return new Date(Number(pa[2]),Number(pa[1])-1,Number(pa[0]))-new Date(Number(pb[2]),Number(pb[1])-1,Number(pb[0]));
     });
-    // Footer - dark band on every page, logo only on last
-    var isLastPage = (di===dates.length-1);
-    sf(doc,cND);doc.rect(0,PH-14,PW,14,'F');
-    sf(doc,cNG);doc.rect(0,PH-14,PW,1,'F');
-    if(isLastPage){
-      doc.addImage(_LOGO_B64,'JPEG',ML,PH-13,26,12);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
-      var totalSvc=Object.values(byDate).reduce(function(s,arr){return s+arr.length;},0);
-      var totalPax=Object.values(byDate).reduce(function(s,arr){return s+arr.reduce(function(s2,x){return s2+(Number(x.CANT_PAX)||1);},0);},0);
-      doc.text('Total: '+totalSvc+' servicios  \u00b7  '+totalPax+' pax',ML+30,PH-6);
-      doc.text(dates.length+' dia'+(dates.length>1?'s':''),PW-MR,PH-6,{align:'right'});
-    } else {
-      doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
-      doc.text((di+1)+' / '+dates.length,PW-MR,PH-6,{align:'right'});
-    }
+
+    var PW=297,PH=210,ML=12,MR=12;
+    var doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+
+    dates.forEach(function(date,di){
+      if(di>0)doc.addPage();
+      // Header
+      sf(doc,cND);doc.rect(0,0,PW,20,'F');
+      sf(doc,cNG);doc.rect(0,20,PW,1.5,'F');
+      doc.addImage(_LOGO_B64,'JPEG',ML,2,34,16);
+      doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+      st(doc,[160,160,160]);
+      doc.text('HOJA DE SERVICIO  ·  '+chofer.toUpperCase(),PW-MR,14,{align:'right'});
+      // Day title
+      var y=26;
+      // Chofer name as subtitle
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[150,150,150]);
+      doc.text('Chofer: ',ML,y+4);
+      var cwlw=doc.getTextWidth('Chofer: ');
+      doc.setFont('helvetica','bold');st(doc,cNG);
+      doc.text(chofer,ML+cwlw,y+4);
+      y+=7;
+      doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cND);
+      doc.text(dayLabel(date).toUpperCase(),ML,y+5);
+      y+=9;
+      sf(doc,cNG);doc.rect(ML,y,PW-ML-MR,0.6,'F');y+=5;
+      // Table
+      var dayRows=byDate[date];
+      var tableData=dayRows.map(function(r){
+        return[
+          fmtH(r.hora_PICK_UP)||'—',
+          cleanDesc(r.DESCRIPCION),
+          r.categoria||r.VEHICULO||'',
+          r.VUELO||r.vuelo_origen||'',
+          r.pax_nombre||r.NOMBRE_FILE||'',
+          String(r.CANT_PAX||1),
+          r.lugar_origen||'',
+          r.lugar_destino||'',
+          r.guia_nombre||r.GUIA||'',
+          r.chofer_nombre||r.TRANSPORTE||'',
+          r.observaciones||'',
+          String(r.ID_FILE||'')
+        ];
+      });
+      doc.autoTable({
+        startY:y,margin:{left:ML,right:MR},
+        head:[['Hora','Servicio','Cat','Vuelo','Nombre Pax','Pax','Origen','Destino','Guia','Chofer','Observaciones','File']],
+        body:tableData,
+        styles:{fontSize:7.5,cellPadding:3,valign:'top',textColor:[40,40,40],overflow:'linebreak'},
+        headStyles:{fillColor:cND,textColor:cWH,fontStyle:'bold',fontSize:7.5,cellPadding:4,halign:'left',valign:'middle',overflow:'hidden'},
+        alternateRowStyles:{fillColor:[249,249,249]},
+        columnStyles:{
+          0:{cellWidth:15,fontStyle:'bold',textColor:cNG,fontSize:9,overflow:'hidden'},
+          1:{cellWidth:40},
+          2:{cellWidth:14,halign:'left',overflow:'hidden'},
+          3:{cellWidth:16,textColor:cTRF,overflow:'hidden'},
+          4:{cellWidth:38},
+          5:{cellWidth:12,halign:'center',overflow:'hidden'},
+          6:{cellWidth:24},
+          7:{cellWidth:24},
+          8:{cellWidth:20},
+          9:{cellWidth:20},
+          10:{cellWidth:34,fontSize:7,textColor:[120,100,0]},
+          11:{cellWidth:16,textColor:[120,120,120],overflow:'hidden'}
+        },
+        didParseCell:function(data){
+          if(data.section==='head'){
+            data.cell.styles.halign='left';
+            data.cell.styles.valign='middle';
+            data.cell.styles.overflow='hidden';
+            data.cell.styles.cellPadding=3;
+          }
+          if(data.column.index===0&&data.section==='body'){
+            data.cell.styles.fontStyle='bold';
+            data.cell.styles.textColor=cNG;
+            data.cell.styles.fontSize=9;
+          }
+        },
+        tableLineColor:cBD,tableLineWidth:0.2,
+      });
+      // Footer - dark band every page
+      sf(doc,cND);doc.rect(0,PH-14,PW,14,'F');
+      sf(doc,cNG);doc.rect(0,PH-14,PW,1,'F');
+      var isLastPage=(di===dates.length-1);
+      if(isLastPage){
+        doc.addImage(_LOGO_B64,'JPEG',ML,PH-13,26,12);
+        doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
+        var totalSvc=choferRows.length;
+        var totalPax=choferRows.reduce(function(s,r){return s+(Number(r.CANT_PAX)||1);},0);
+        doc.text('Total: '+totalSvc+' servicios  ·  '+totalPax+' pax',ML+30,PH-6);
+        doc.text(dates.length+' dia'+(dates.length>1?'s':''),PW-MR,PH-6,{align:'right'});
+      } else {
+        doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[160,160,160]);
+        doc.text((di+1)+' / '+dates.length,PW-MR,PH-6,{align:'right'});
+      }
+    });
+
+    pdfs.push({doc:doc, chofer:chofer, name:'nites_chofer_'+chofer.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf'});
   });
-  var ds=(rows.c[0]&&fmtDate(rows.c[0].FECHA_in))||'hoy';
-  doc.save('nites_chofer_'+ds.replace(/\//g,'-')+'.pdf');
-  document.getElementById('reslist-c').innerHTML=
-    '<div class="res-row"><div><div class="res-name">PDF generado</div><div class="res-sub">'+dates.length+' dia(s) \u00b7 '+selC.size+' servicios</div></div>'+
-    '<button class="dl-btn dl-btn-dark" onclick="genChofer()">Volver a descargar</button></div>';
+
+  // Store and show results
+  window._choferPdfs=pdfs;
+  var html='';
+  pdfs.forEach(function(p,i){
+    html+='<div class="res-row">'+
+      '<div><div class="res-name">'+p.chofer+'</div>'+
+      '<div class="res-sub">'+byChofer[p.chofer].length+' servicios · '+p.name+'</div></div>'+
+      '<button class="dl-btn dl-btn-dark" onclick="window._choferPdfs['+i+'].doc.save(window._choferPdfs['+i+'].name)">Descargar PDF</button>'+
+    '</div>';
+  });
+  if(pdfs.length>1){
+    html+='<div class="res-row" style="justify-content:flex-end">'+
+      '<button class="dl-btn dl-btn-green" onclick="dlChoferZip()">Descargar todos (ZIP)</button></div>';
+  }
+  document.getElementById('reslist-c').innerHTML=html;
   document.getElementById('res-c').classList.add('on');
+  // Auto-download if single chofer
+  if(pdfs.length===1) pdfs[0].doc.save(pdfs[0].name);
 }
 
-// ── PAX PDF ──
+async function dlChoferZip(){
+  var zip=new JSZip();
+  (window._choferPdfs||[]).forEach(function(p){zip.file(p.name,p.doc.output('arraybuffer'));});
+  var blob=await zip.generateAsync({type:'blob'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nites_choferes.zip';a.click();
+}
+
+
 async function genPax(){
   var toGen=Object.entries(selP).filter(function(e){return e[1].size>0;});
   if(!toGen.length)return;
@@ -910,7 +985,10 @@ function humanizeDesc(raw) {
   if(d.indexOf('ZUCCARDI')>=0 || d.indexOf('SANTA JULIA')>=0) {
     return prefix+(d.indexOf('ENEMIGO')>=0?' Bodegas El Enemigo y Santa Julia Zuccardi':' Bodega Santa Julia Zuccardi');
   }
-  if(d.indexOf('ENEMIGO')>=0) return prefix+' Bodega El Enemigo';
+  // Only match El Enemigo if it's standalone (not combined with unknown bodegas like LAUR, CASA VIGIL)
+  if(d.indexOf('ENEMIGO')>=0 && d.indexOf('LAUR')<0 && d.indexOf('VIGIL')<0 && d.indexOf('VISTALBA')<0) {
+    return prefix+' Bodega El Enemigo';
+  }
   if(d.indexOf('THE VINES')>=0) return prefix+' The Vines of Mendoza';
   if(d.indexOf('MENDOZA')>=0 && d.indexOf('VINO')>=0) return prefix+' Mendoza: Vino y Ciudad';
 
@@ -1041,10 +1119,16 @@ function buildPaxPDF(fileRows){
       doc.setFont('helvetica','bold');doc.setFontSize(10);
       var titleLines=doc.splitTextToSize(desc,CONTENT_W);
       var titleH=titleLines.length*5.2;
+      var isTRF = (gtype(r.DESCRIPCION||'')==='TRF');
       var details=[];
       if(vu)details.push('Vuelo: '+vu);
       if(r.guia_nombre)details.push('Guia: '+r.guia_nombre);
-      if(r.CANT_PAX>1)details.push((r.CANT_PAX||1)+' pax');
+      details.push((r.CANT_PAX||1)+' pax');
+      // For transfers, add origin/destination on second line
+      var routeDetail='';
+      if(isTRF&&(r.lugar_origen||r.lugar_destino)){
+        routeDetail=(r.lugar_origen||'')+(r.lugar_destino?' -> '+r.lugar_destino:'');
+      }
       doc.setFont('helvetica','normal');doc.setFontSize(8.5);
       var detailLine=details.join('  \u00b7  ');
       var detailLines=detailLine?doc.splitTextToSize(detailLine,CONTENT_W):[];
@@ -1088,6 +1172,12 @@ function buildPaxPDF(fileRows){
         doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[110,110,110]);
         doc.text(detailLines,CONTENT_X,cy+4);
         cy+=detailH+3;
+      }
+      if(routeDetail){
+        doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[130,130,130]);
+        var rlines=doc.splitTextToSize(routeDetail,CONTENT_W);
+        doc.text(rlines,CONTENT_X,cy+3);
+        cy+=rlines.length*3.8+2;
       }
 
       // ── Template content (desc + rec) ──
@@ -1177,16 +1267,24 @@ function buildPaxPDF(fileRows){
   doc.text('Emergencias',ML,y);y+=5.5;
   doc.setFont('helvetica','normal');doc.setFontSize(8.5);st(doc,[90,90,90]);
   // Render inline: "Ante cualquier " + "EMERGENCIA" bold + " que requiera..."
-  var pre='Ante cualquier ';
-  var bold='EMERGENCIA';
-  var post=' que requiera asistencia inmediata puede contactarnos por llamada:';
-  var preW=doc.getTextWidth(pre);
-  var boldW=doc.getTextWidth(bold);
-  doc.text(pre,ML,y);
-  doc.setFont('helvetica','bold');st(doc,cND);
-  doc.text(bold,ML+preW,y);
-  doc.setFont('helvetica','normal');st(doc,[90,90,90]);
-  doc.text(post,ML+preW+boldW,y);y+=5;
+  // Render: "Ante cualquier " + EMERGENCIA(bold) + " que requiera asistencia inmediata puede contactarnos por " + LLAMADA(bold) + ":"
+  // Single line: "Ante cualquier EMERGENCIA que...por LLAMADA:" at 8pt
+  doc.setFont('helvetica','normal');doc.setFontSize(8);st(doc,[90,90,90]);
+  var lx=ML;
+  var parts8=[
+    {t:'Ante cualquier ',bold:false},
+    {t:'EMERGENCIA',bold:true},
+    {t:' que requiera asistencia inmediata puede contactarnos por ',bold:false},
+    {t:'LLAMADA',bold:true},
+    {t:':',bold:false}
+  ];
+  parts8.forEach(function(p){
+    doc.setFont('helvetica',p.bold?'bold':'normal');
+    st(doc,p.bold?cND:[90,90,90]);
+    doc.text(p.t,lx,y);
+    lx+=doc.getTextWidth(p.t);
+  });
+  y+=5;
   doc.setFont('helvetica','bold');doc.setFontSize(12);st(doc,cNG);
   doc.text('+54 9 261 303-3646',ML,y);y+=9;
 
