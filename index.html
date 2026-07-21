@@ -509,6 +509,9 @@ function loadFile(tab,file){
 function clearFile(tab){
   rows[tab]=[];
   if(tab==='c')selC.clear();else if(tab==='g')selG.clear();else selP={};
+  rowTemplates={};
+  rowNotes={};
+  _excRows={};
   document.getElementById('uzone-'+tab).style.display='';
   document.getElementById('fpill-'+tab).classList.remove('on');
   document.getElementById('main-'+tab).style.display='none';
