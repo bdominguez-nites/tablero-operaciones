@@ -7,6 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -170,6 +171,16 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 .lang-opt.on{border-color:var(--ng);background:#f4fde8;color:var(--ngd);box-shadow:0 0 0 3px rgba(141,198,63,.15)}
 .lang-opt .lang-flag{font-size:18px}
 .lang-opt .lang-name{font-size:12px;font-weight:700}
+
+/* ── FORMAT SELECTOR ── */
+.fmt-row{display:flex;gap:10px;margin-bottom:4px}
+.fmt-opt{flex:1;padding:12px 8px;border:1.5px solid var(--bd);border-radius:var(--r);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;text-align:center;color:var(--txt2);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;flex-direction:column}
+.fmt-opt:hover{border-color:var(--ng);color:var(--ng);background:#f4fde8}
+.fmt-opt.on{border-color:var(--ng);background:#f4fde8;color:var(--ngd);box-shadow:0 0 0 3px rgba(141,198,63,.15)}
+.fmt-opt .fmt-icon{font-size:20px}
+.fmt-opt .fmt-name{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.fmt-hint{font-size:11px;color:var(--txt3);margin-top:5px;font-style:italic}
+.dl-btn-blue{background:var(--trf);color:#fff}
 </style>
 </head>
 <body>
@@ -365,9 +376,16 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
         <button class="lang-opt" data-lang="pt" onclick="setLang('p','pt')"><span class="lang-name">Português</span></button>
       </div>
       <hr class="divider">
-      <div class="step"><div class="step-num">4</div><div class="step-lbl">Generar itinerarios</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-lbl">Formato de descarga</div></div>
+      <div class="fmt-row" id="fmt-p">
+        <button class="fmt-opt on" data-fmt="pdf" onclick="toggleFmt('p','pdf')"><span class="fmt-icon">📄</span><span class="fmt-name">PDF</span></button>
+        <button class="fmt-opt" data-fmt="jpg" onclick="toggleFmt('p','jpg')"><span class="fmt-icon">🖼️</span><span class="fmt-name">JPG</span></button>
+      </div>
+      <p class="fmt-hint" id="fmt-hint-p" style="display:none">Si el itinerario ocupa más de una hoja, se generará una imagen por página.</p>
+      <hr class="divider">
+      <div class="step"><div class="step-num">5</div><div class="step-lbl">Generar itinerarios</div></div>
       <button class="gen-btn" id="gbtn-p" onclick="genPax()" disabled>
-        <span>Generar itinerarios PDF</span>
+        <span>Generar itinerarios</span>
         <span class="gen-btn-arrow">→</span>
       </button>
       <div class="progress" id="prog-p">
@@ -387,6 +405,7 @@ select:focus,input:focus{outline:none;border-color:var(--ng)}
 
 // ── LANGUAGE STATE & TRANSLATIONS ──
 var pdfLang={c:'es',p:'es',g:'es'};
+var pdfFmt={p:{pdf:true,jpg:false}};
 
 var TR={
   es:{
@@ -464,6 +483,21 @@ function setLang(tab,lang){
   document.querySelectorAll('#lang-'+tab+' .lang-opt').forEach(function(b){
     b.classList.toggle('on', b.dataset.lang===lang);
   });
+}
+
+function toggleFmt(tab,fmt){
+  if(tab!=='p')return;
+  pdfFmt[tab][fmt]=!pdfFmt[tab][fmt];
+  // Al menos uno debe estar activo
+  if(!pdfFmt[tab].pdf&&!pdfFmt[tab].jpg){pdfFmt[tab][fmt]=true;}
+  document.querySelectorAll('#fmt-'+tab+' .fmt-opt').forEach(function(b){
+    b.classList.toggle('on',!!pdfFmt[tab][b.dataset.fmt]);
+  });
+  // Mostrar/ocultar hint de JPG
+  var hint=document.getElementById('fmt-hint-'+tab);
+  if(hint) hint.style.display=pdfFmt[tab].jpg?'':'none';
+  // Actualizar label del botón via updP (que ya maneja el estado de formato)
+  if(tab==='p') updP();
 }
 
 // ── STATE ──
@@ -1005,8 +1039,13 @@ function updP(){
   var n=Object.values(selP).filter(function(s){return s.size>0;}).length;
   document.getElementById('scnt-p').textContent=n+' sel.';
   document.getElementById('gbtn-p').disabled=n===0;
-  document.getElementById('gbtn-p').querySelector('span').textContent=
-    n===0?'Seleccioná files para continuar':'Generar '+(n>1?n+' itinerarios':'itinerario')+' PDF';
+  var base=n===0?'Seleccioná files para continuar':'Generar '+(n>1?n+' itinerarios':'itinerario');
+  var fmt='';
+  if(n>0){
+    if(pdfFmt.p.pdf&&pdfFmt.p.jpg) fmt=' (PDF + JPG)';
+    else if(pdfFmt.p.jpg) fmt=' (JPG)';
+  }
+  document.getElementById('gbtn-p').querySelector('span').textContent=base+fmt;
 }
 
 // ── PDF COLORS (jsPDF uses 0-255) ──
@@ -1313,16 +1352,64 @@ async function dlChoferZip(){
 }
 
 
+// ── PDF → JPG CONVERSION ──
+async function pdfToJpgs(doc){
+  var pdfjsLib=window.pdfjsLib;
+  if(!pdfjsLib)throw new Error('PDF.js no disponible');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var pdfData=doc.output('arraybuffer');
+  var pdfDoc=await pdfjsLib.getDocument({data:pdfData}).promise;
+  var jpgs=[];
+  for(var i=1;i<=pdfDoc.numPages;i++){
+    var page=await pdfDoc.getPage(i);
+    var scale=2.5; // alta resolución (~A4 a ~200dpi)
+    var viewport=page.getViewport({scale:scale});
+    var canvas=document.createElement('canvas');
+    canvas.width=viewport.width;
+    canvas.height=viewport.height;
+    var ctx=canvas.getContext('2d');
+    await page.render({canvasContext:ctx,viewport:viewport}).promise;
+    jpgs.push(canvas.toDataURL('image/jpeg',0.92));
+  }
+  return jpgs;
+}
+
+function dlJpgSingle(dataUrl,filename){
+  var a=document.createElement('a');a.href=dataUrl;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+async function dlJpgZip(idx){
+  var p=window._pdfs[idx];
+  if(!p||!p.jpgs||!p.jpgs.length)return;
+  var zip=new JSZip();
+  var base=p.name.replace('.pdf','');
+  p.jpgs.forEach(function(jpg,i){zip.file(base+'_p'+(i+1)+'.jpg',jpg.split(',')[1],{base64:true});});
+  var blob=await zip.generateAsync({type:'blob'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=base+'_imagenes.zip';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+async function dlAllJpgZip(){
+  var zip=new JSZip();
+  window._pdfs.forEach(function(p){
+    if(!p.jpgs)return;
+    var base=p.name.replace('.pdf','');
+    p.jpgs.forEach(function(jpg,i){zip.file(base+'_p'+(i+1)+'.jpg',jpg.split(',')[1],{base64:true});});
+  });
+  var blob=await zip.generateAsync({type:'blob'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='nites_itinerarios_imagenes.zip';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
 async function genPax(){
   var toGen=Object.entries(selP).filter(function(e){return e[1].size>0;});
   if(!toGen.length)return;
+  var doPdf=pdfFmt.p.pdf, doJpg=pdfFmt.p.jpg;
   document.getElementById('gbtn-p').disabled=true;
   document.getElementById('prog-p').classList.add('on');
   var pdfs=[];
   for(var fi=0;fi<toGen.length;fi++){
     var fid=toGen[fi][0],fsel=toGen[fi][1];
-    document.getElementById('plbl-p').textContent='Generando PDF '+(fi+1)+' de '+toGen.length+'...';
-    document.getElementById('pfill-p').style.width=Math.round((fi/toGen.length)*100)+'%';
+    document.getElementById('plbl-p').textContent='Generando '+(fi+1)+' de '+toGen.length+'...';
+    document.getElementById('pfill-p').style.width=Math.round((fi/toGen.length)*85)+'%';
     var fileRows=rows.p.reduce(function(arr,r,i){
       if(String(r.ID_FILE||'_'+i)===fid&&fsel.has(i)){
         var copy=Object.assign({},r); copy._rowIdx=i; arr.push(copy);
@@ -1332,7 +1419,12 @@ async function genPax(){
     if(!fileRows.length)continue;
     var pdf=buildPaxPDF(fileRows);
     var paxName=fileRows[0].pax_nombre||fileRows[0].NOMBRE_FILE||'File '+fid;
-    pdfs.push({doc:pdf,name:'nites_itinerario_'+fid+'.pdf',pax:paxName});
+    var item={doc:pdf,name:'nites_itinerario_'+fid+'.pdf',pax:paxName,jpgs:null};
+    if(doJpg){
+      document.getElementById('plbl-p').textContent='Convirtiendo a JPG '+(fi+1)+' de '+toGen.length+'...';
+      try{item.jpgs=await pdfToJpgs(pdf);}catch(err){console.error('JPG error:',err);item.jpgs=[];}
+    }
+    pdfs.push(item);
   }
   document.getElementById('pfill-p').style.width='100%';
   document.getElementById('plbl-p').textContent='Listo.';
@@ -1340,16 +1432,34 @@ async function genPax(){
   document.getElementById('gbtn-p').disabled=false;
   updP();
   window._pdfs=pdfs;
+
+  // Cabecera dinámica
+  var hdrTxt='PDFs listos para descargar';
+  if(doPdf&&doJpg) hdrTxt='PDF + JPG listos para descargar';
+  else if(doJpg) hdrTxt='Imágenes JPG listas para descargar';
+  document.querySelector('#res-p .res-hdr-text').textContent=hdrTxt;
+
   var html='';
   pdfs.forEach(function(p,i){
-    html+='<div class="res-row">'+
-      '<div><div class="res-name">'+p.pax+'</div><div class="res-sub">'+p.name+'</div></div>'+
-      '<button class="dl-btn dl-btn-green" onclick="window._pdfs['+i+'].doc.save(window._pdfs['+i+'].name)">Descargar PDF</button>'+
-    '</div>';
+    var btns='<div class="dl-row">';
+    if(doPdf) btns+='<button class="dl-btn dl-btn-green" onclick="window._pdfs['+i+'].doc.save(window._pdfs['+i+'].name)">⬇ PDF</button>';
+    if(doJpg&&p.jpgs){
+      if(p.jpgs.length===1){
+        var jpgName=p.name.replace('.pdf','_p1.jpg');
+        btns+='<button class="dl-btn dl-btn-blue" onclick="dlJpgSingle(window._pdfs['+i+'].jpgs[0],\''+jpgName+'\')">⬇ JPG</button>';
+      }else if(p.jpgs.length>1){
+        btns+='<button class="dl-btn dl-btn-blue" onclick="dlJpgZip('+i+')">⬇ JPGs ('+p.jpgs.length+' imgs)</button>';
+      }
+    }
+    btns+='</div>';
+    html+='<div class="res-row"><div><div class="res-name">'+p.pax+'</div><div class="res-sub">'+p.name+'</div></div>'+btns+'</div>';
   });
   if(pdfs.length>1){
-    html+='<div class="res-row" style="justify-content:flex-end">'+
-      '<button class="dl-btn dl-btn-dark" onclick="dlZip()">Descargar todos (ZIP)</button></div>';
+    var bulkBtns='<div class="dl-row">';
+    if(doPdf) bulkBtns+='<button class="dl-btn dl-btn-dark" onclick="dlZip()">Todos PDF (ZIP)</button>';
+    if(doJpg) bulkBtns+='<button class="dl-btn dl-btn-dark" onclick="dlAllJpgZip()">Todos JPGs (ZIP)</button>';
+    bulkBtns+='</div>';
+    html+='<div class="res-row" style="justify-content:flex-end">'+bulkBtns+'</div>';
   }
   document.getElementById('reslist-p').innerHTML=html;
   document.getElementById('res-p').classList.add('on');
